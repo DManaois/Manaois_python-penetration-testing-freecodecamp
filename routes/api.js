@@ -52,7 +52,7 @@ module.exports = function (app) {
                 await saveStock(symbol2, like, req.ip);
 
                 const relLikes1 = like === 'true' ? 1 : 0;
-                const relLikes2 = like === 'true' ? -1 : 0;
+                const relLikes2 = like === 'true' ? 1 : 0;
 
                 let stockData = [];
                 stockData.push({
