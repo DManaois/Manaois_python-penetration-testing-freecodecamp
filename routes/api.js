@@ -63,60 +63,37 @@ module.exports = function (app) {
   app.route('/api/stock-prices')
       .get(async function (req, res) {
           const { stock, like } = req.query;
-          if (Array.isArray(stock)) {
-            console.log ("stocks", stock);
-
-            const {symbol, latestPrice} = await getStock (stock [0]);
-            const {symbol: symbol2, latestPrice: latestPrice2} = await getStock(
-              stock [1]
-            );
-
-            const firststock = await saveStock(stock[0], like, req.ip);
-            const secondstock = await saveStock(stock[1], like, req.ip);
-
+          if (Array.isArray(stock) && stock.length === 2) {
+            const [symbol1, symbol2] = stock;
+            const { symbol: symbol1Name, latestPrice: latestPrice1 } = await getStock(symbol1);
+            const { symbol: symbol2Name, latestPrice: latestPrice2 } = await getStock(symbol2);
+        
+            const firstStock = await saveStock(symbol1, like, req.ip);
+            const secondStock = await saveStock(symbol2, like, req.ip);
+        
             let stockData = [];
-            if(!symbol){
-              stockData.push({
-                rel_likes: firststock.likes.length - secondstock.likes.length,
-
-              });
-            } else {
-              stockData.push({
-                stock: symbol,
-                price: latestPrice,
-                rel_likes: firststock.likes.length - secondstock.likes.length,
-              });
-            }
-
-
-            if(!symbol2){
-              stockData.push({
-                rel_likes: secondstock.likes.length - firststock.likes.length,
-
-              });
-            } else {
-              stockData.push({
-                stock: symbol2,
+            stockData.push({
+                stock: symbol1Name,
+                price: latestPrice1,
+                rel_likes: firstStock.likes.length - secondStock.likes.length,
+            });
+            stockData.push({
+                stock: symbol2Name,
                 price: latestPrice2,
-                rel_likes: secondstock.likes.length - firststock.likes.length,
-              });
-            }
-            
+                rel_likes: secondStock.likes.length - firstStock.likes.length,
+            });
+        
             res.json({
-              stockData,
+                stockData,
             });
             return;
-            
+        }
+        
+        
 
-
-
-          }
-          const fetch = await import('node-fetch');
-          const response = await fetch.default(
-              `https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/${stock}/quote`
-          );
-          const { symbol, latestPrice } = await response.json();
-          const likes = like === 'true' ? 1 : 0; // Check if like is 'true'
+          const { symbol, latestPrice } = await getStock(stock);
+          const likes = like === 'true' ? 1 : 0;
           res.json({ stockData: { stock, price: latestPrice, likes } });
       });
 };
+
